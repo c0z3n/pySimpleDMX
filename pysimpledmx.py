@@ -41,7 +41,7 @@ class DMXConnection(object):
         print "Opened %s" % (self.com.portstr)
 
     
-    def setChannel(self, chan, val, autorender=0):
+    def setChannel(self, chan, val, autorender=False):
     #  takes channel and value arguments to set a channel level in the local 
     #  dmx frame, to be rendered the next time the render() method is called
         if (chan > 512) or (chan < 1):
@@ -50,7 +50,7 @@ class DMXConnection(object):
         if val > 255: val=255
         if val < 0: val=0
         self.dmx_frame[chan] = val
-        if not (autorender == 0):
+        if autorender:
             self.render()
     
     def clear(self, chan=0):
@@ -64,6 +64,7 @@ class DMXConnection(object):
             
     
     def render(self):
+    #  updates the dmx output from the USB DMX Pro with the values from self.dmx_frame
         packet = []
         packet.append(chr(START_VAL))
         packet.append(chr(LABELS['TX_DMX_PACKET']))
