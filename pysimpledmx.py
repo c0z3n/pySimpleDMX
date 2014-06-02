@@ -27,13 +27,9 @@ class DMXConnection(object):
       #setup channel output list
         for i in xrange (511):
             self.dmx_frame.append(0)
-        
-      #open com
-        if comport is not None: port_num = comport-1
-        else:port_num = COM_PORT-1
-            
+
         try:
-            self.com = serial.Serial(port_num, baudrate=COM_BAUD, timeout=COM_TIMEOUT)
+            self.com = serial.Serial(comport, baudrate=COM_BAUD, timeout=COM_TIMEOUT)
         except:
             print "Could not open COM%s, quitting application" % (port_num+1)
             sys.exit(0)
