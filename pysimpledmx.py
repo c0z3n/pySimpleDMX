@@ -25,7 +25,7 @@ class DMXConnection(object):
         self.dmx_frame = list()
         
       #setup channel output list
-        for i in xrange (511):
+        for i in xrange (513):
             self.dmx_frame.append(0)
 
         try:
