@@ -1,80 +1,75 @@
-import serial, sys, time
+import serial, sys
 
-START_VAL = 0x7E
-END_VAL = 0xE7
+START_VAL   = 0x7E
+END_VAL     = 0xE7
 
-COM_BAUD = 57600
+COM_BAUD    = 57600
 COM_TIMEOUT = 1
-COM_PORT = 7
+COM_PORT    = 7
+DMX_SIZE    = 512
 
-LABELS = {     
-               'GET_WIDGET_PARAMETERS' :3,  #unused
-               'SET_WIDGET_PARAMETERS' :4,  #unused
-               'RX_DMX_PACKET'         :5,  #unused
-               'TX_DMX_PACKET'         :6,
-               'TX_RDM_PACKET_REQUEST' :7,  #unused
-               'RX_DMX_ON_CHANGE'      :8,  #unused
-          }
-          
-          
+LABELS = {
+         'GET_WIDGET_PARAMETERS' :3,  #unused
+         'SET_WIDGET_PARAMETERS' :4,  #unused
+         'RX_DMX_PACKET'         :5,  #unused
+         'TX_DMX_PACKET'         :6,
+         'TX_RDM_PACKET_REQUEST' :7,  #unused
+         'RX_DMX_ON_CHANGE'      :8,  #unused
+      }
+
+
 class DMXConnection(object):
-    
-    def __init__(self, comport=None):
-        
-        self.com = 0
-        self.dmx_frame = list()
-        
-      #setup channel output list
-        for i in xrange (513):
-            self.dmx_frame.append(0)
+  def __init__(self, comport=None):
+    self.dmx_frame = [0] * DMX_SIZE
+    try:
+      self.com = serial.Serial(comport, baudrate = COM_BAUD, timeout = COM_TIMEOUT)
+    except:
+      com_name = 'COM%s' % comport + 1 if type(comport) == int else comport
+      print "Could not open device %s. Quitting application." % com_name
+      sys.exit(0)
 
-        try:
-            self.com = serial.Serial(comport, baudrate=COM_BAUD, timeout=COM_TIMEOUT)
-        except:
-            print "Could not open COM%s, quitting application" % (port_num+1)
-            sys.exit(0)
-            
-        print "Opened %s" % (self.com.portstr)
+    print "Opened %s." % (self.com.portstr)
 
+
+  def setChannel(self, chan, val, autorender = False):
+    '''
+    Takes channel and value arguments to set a channel level in the local 
+    DMX frame, to be rendered the next time the render() method is called.
+    '''
+    if not 1 <= chan <= DMX_SIZE:
+      print 'Invalid channel specified: %s' % chan
+      return
+    # clamp value
+    val = max(0, min(val, 255))
+    self.dmx_frame[chan] = val
+    if autorender: self.render()
+
+  def clear(self, chan = 0):
+    '''
+    Clears all channels to zero. blackout.
+    With optional channel argument, clears only one channel.
+    '''
+    if chan == 0:
+      self.dmx_frame = [0] * DMX_SIZE
+    else:
+      self.dmx_frame[chan] = 0
+
+
+  def render(self):
+    ''''
+    Updates the DMX output from the USB DMX Pro with the values from self.dmx_frame.
+    '''
+    packet = [
+              START_VAL,
+              LABELS['TX_DMX_PACKET'],
+              len(self.dmx_frame) & 0xFF,
+              (len(self.dmx_frame) >> 8) & 0xFF,
+    ]
+    packet += self.dmx_frame
+    packet.append(END_VAL)
     
-    def setChannel(self, chan, val, autorender=False):
-    #  takes channel and value arguments to set a channel level in the local 
-    #  dmx frame, to be rendered the next time the render() method is called
-        if (chan > 512) or (chan < 1):
-            print "invalid channel"
-            return
-        if val > 255: val=255
-        if val < 0: val=0
-        self.dmx_frame[chan] = val
-        if autorender:
-            self.render()
-    
-    def clear(self, chan=0):
-    #  clears all channels to zero. blackout.
-    #  with optional channel argument, clears only one channel
-        if chan==0:
-            for i in xrange (1, 512, 1):
-                self.dmx_frame[i]=0
-        else:
-            self.dmx_frame[chan]=0
-            
-    
-    def render(self):
-    #  updates the dmx output from the USB DMX Pro with the values from self.dmx_frame
-        packet = []
-        packet.append(chr(START_VAL))
-        packet.append(chr(LABELS['TX_DMX_PACKET']))
-        packet.append(chr(len(self.dmx_frame) & 0xFF))
-        packet.append(chr((len(self.dmx_frame) >> 8) & 0xFF))
-        
-        for j in xrange(len(self.dmx_frame)):
-            packet.append(chr(self.dmx_frame[j]))
-            
-        packet.append(chr(END_VAL))
-        
-        self.com.write(''.join(packet)) 
-        
-    def close(self):
-        self.com.close()
-        
-      
+    packet = map(chr, packet)
+    self.com.write(''.join(packet)) 
+
+  def close(self):
+    self.com.close()
