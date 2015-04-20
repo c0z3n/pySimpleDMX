@@ -19,12 +19,12 @@ LABELS = {
 
 
 class DMXConnection(object):
-  def __init__(self, comport=None):
+  def __init__(self, comport = None):
     self.dmx_frame = [0] * DMX_SIZE
     try:
       self.com = serial.Serial(comport, baudrate = COM_BAUD, timeout = COM_TIMEOUT)
     except:
-      com_name = 'COM%s' % comport + 1 if type(comport) == int else comport
+      com_name = 'COM%s' % (comport + 1) if type(comport) == int else comport
       print "Could not open device %s. Quitting application." % com_name
       sys.exit(0)
 
@@ -73,3 +73,4 @@ class DMXConnection(object):
 
   def close(self):
     self.com.close()
+
