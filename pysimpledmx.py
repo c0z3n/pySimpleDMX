@@ -20,6 +20,13 @@ LABELS = {
 
 class DMXConnection(object):
   def __init__(self, comport = None):
+    '''
+    On Windows, the only argument is the port number. On *nix, it's the path to the serial device.
+    For example:
+        DMXConnection(4)              # Windows
+        DMXConnection('/dev/tty2')    # Linux
+        DMXConnection("/dev/ttyUSB0") # Linux
+    '''
     self.dmx_frame = [0] * DMX_SIZE
     try:
       self.com = serial.Serial(comport, baudrate = COM_BAUD, timeout = COM_TIMEOUT)
