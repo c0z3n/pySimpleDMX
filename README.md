@@ -9,14 +9,20 @@ pySimpleDMX is a simple python module designed to make basic DMX control in pyth
 pySimpleDMX is designed for and requires an [Enttec USB DMX Pro](http://www.enttec.com/index.php?main_menu=Products&pn=70304&show=description&name=dmxusbpro) or compatible hardware for communication over a DMX network.
 
 #### Installation ####
-Simply take a copy of pysimpledmx.py and stick it either in your project directory, or in your python `site packages` directory. Nothing fancy.
+
+```
+# stable
+pip install pysimpledmx
+# head
+pip install git+https://github.com/c0z3n/pySimpleDMX.git
+```
 
 #### Initialization ####
 To initialize pySimpleDMX, initialize a `pysimpledmx.DMXConnection()` object, using the com port number of your enttec DMX USB Pro as an argument. For example, if our DMX USB Pro is on com port 3, we would initialize our dmx connection using `dmx = pysimpledmx.DMXConnection(3)`
 
-If for any reason the dmx connection fails to initialize on the provided com port, pysimpledmx will let you know via the console and close. 
+If for any reason the dmx connection fails to initialize on the provided com port, pysimpledmx will let you know via the console and close.
 
-    # example    
+    # example
     import pysimpledmx
     mydmx = pysimpledmx.DMXConnection(3)
     ...
@@ -32,13 +38,23 @@ the `chan` and `val` arguments should be between 1 and 512 and between 0 and 255
 unless the `autorender` argument is specified `True`, the `.render()` method must be called to update the dmx output. because of the serial communication with the DMX USB Pro, this is a relatively slow operation, and thus rendering should be done sparingly to avoid bottlenecking and setting `autorender` is not reccomended.
 
 
-    # example    
+    # example
     import pysimpledmx
     mydmx = pysimpledmx.DMXConnection(3)
-    
+
     mydmx.setChannel(1, 255) # set DMX channel 1 to full
     mydmx.setChannel(2, 128) # set DMX channel 2 to 128
     mydmx.setChannel(3, 0)   # set DMX channel 3 to 0
     mydmx.render() render    # render all of the above changes onto the DMX network
 
     mydmx.setChannel(4, 255, autorender=True) # set channel 4 to full and render to the network
+
+#### Development #####
+##### Bumping Version #####
+
+1. Change version in `./setup.py`
+2. `python setup.py sdist bdist_wheel upload` (requires `pip install wheel`)
+3. `git commit -am 'bump version to x.x.x'`
+3. `git tag x.x.x`
+4. `git push --tags`
+5. Add release to github tag, with changes and releasion name.
