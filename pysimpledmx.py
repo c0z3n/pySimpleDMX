@@ -40,15 +40,15 @@ class DMXConnection(object):
 
   def setChannel(self, chan, val, autorender = False):
     '''
-    Takes channel and value arguments to set a channel level in the local 
+    Takes channel and value arguments to set a channel level in the local
     DMX frame, to be rendered the next time the render() method is called.
     '''
-    if not 1 <= chan <= DMX_SIZE:
-      print 'Invalid channel specified: %s' % chan
+    if not 1 <= chan-1 <= DMX_SIZE:
+      print 'Invalid channel specified: %s' % chan-1
       return
     # clamp value
     val = max(0, min(val, 255))
-    self.dmx_frame[chan] = val
+    self.dmx_frame[chan-1] = val
     if autorender: self.render()
 
   def clear(self, chan = 0):
@@ -59,7 +59,7 @@ class DMXConnection(object):
     if chan == 0:
       self.dmx_frame = [0] * DMX_SIZE
     else:
-      self.dmx_frame[chan] = 0
+      self.dmx_frame[chan-1] = 0
 
 
   def render(self):
@@ -74,10 +74,9 @@ class DMXConnection(object):
     ]
     packet += self.dmx_frame
     packet.append(END_VAL)
-    
+
     packet = map(chr, packet)
-    self.com.write(''.join(packet)) 
+    self.com.write(''.join(packet))
 
   def close(self):
     self.com.close()
-
